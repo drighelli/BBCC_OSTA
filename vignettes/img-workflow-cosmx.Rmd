@@ -1,3 +1,13 @@
+---
+title: "CosMx Workflow"
+author: OSTA Group
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{CosMx Workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
 # Workflow: CosMX {#sec-img-workflow-cosmx}
 
 {{< include _start.qmd >}}
@@ -335,4 +345,8 @@ We only briefly discussed cell-cell interactions and spatial exploratory analyse
 
 ### References {.unnumbered}
 
-{{< include _stop.qmd >}}
+# Session Info
+
+```{r sessioninfo}
+sessionInfo()
+```
