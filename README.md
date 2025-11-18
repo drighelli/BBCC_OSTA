@@ -1,52 +1,79 @@
-# BuildABiocWorkshop
+# BBCC 2025: Orchestrating Spatial Transcriptomics Analysis with Bioconductor
 
-This package is a template for building a Bioconductor workshop. The package
-includes Github actions to:
+[Tutorial homepage](https://drighelli.github.io/BBCC_OSTA/)
 
-1. Set up bioconductor/bioconductor_docker:devel on Github resources
-2. Install package dependencies for your package (based on the `DESCRIPTION` file)
-3. Run `rcmdcheck::rcmdcheck`
-4. Build a pkgdown website and push it to github pages
-5. Build a docker image with the installed package and dependencies and deploy to [the Github Container Repository](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#pulling-container-images) at the name `ghcr.io/gihub_user/repo_name`, all lowercase. 
+## Speakers
 
-## Responsibilities
+* Dario Righelli, Department of Statistical Sciences, University of Padova, Italy
+* Francesca Calanca, 
+* Emanuela Scafuri, 
 
-Package authors are primarily responsible for:
+## Description
+...
+This tutorial uses as a "text-book" the online book "Orchestrating Single-Cell
+Analysis with Bioconductor"
+([OSCA](https://bioconductor.org/books/release/OSCA/)), 
+started in 2018 and continuously updated by many contributors from the Bioconductor
+community. 
+Like the book, this tutorial strives to be of interest to the
+experimental biologists wanting to analyze their data and to the bioinformaticians
+approaching spatial transcriptomics data.
 
-1. Creating a landing site of their choosing for their workshops (a website). This website should be listed in the `DESCRIPTION` file as the `URL`.
-2. Creating a docker image that will contain workshop materials and the installed packages necessary to run those materials. The name of the resulting docker image, including "tag" if desired, should be listed in a non-standard tag, `DockerImage:` in the `DESCRIPTION` file. 
+## Learning objectives
 
-Both of those tasks can be accomplished using the Github actions included in this template package. The vignette accompanying this package describes how to accomplish both of these tasks.
+Attendees will learn how to analyze multi-condition single-cell RNA-seq from
+raw data to statistical analyses and result interpretation.
 
-## Details
+In particular, participants will learn:
+...
 
-For detailed instructions, see the `How to build a workshop` article/vignette.
+## Time outline
 
-## Results of successful deployment
+TO BE EDITED 
 
-- A working docker image that contains the installed package and dependencies.
-- An up-to-date `pkgdown` website at https://YOURUSERNAME.github.io/YOURREPOSITORYNAME/
-- Docker image will be tagged with `latest`, `sha-XXXXXX` where `XXXXXX` is the hash of the current `master` commit, and `master`. 
+| Activity                     | Time |
+|------------------------------|------|
+| Introduction and Setup                                          | 9:00-9:30    |
+| Introduction to Bioconductor and the SingleCellExperiment class | 9:30-10:00   |
+| Exploratory Data Analysis and Quality Control (EDA/QC)          | 10:00-10:45  |
+| Coffee break                                                    | 10:45-11:00  |
+| Clustering and cell type annotation                             | 11:00-11:45  |
+| Q&A session                                                     | 11:45-12:00  |
+| Multi-sample analyses                                           | 12:00-12:45  |
+| Q&A + Discussion session                                        | 12:45-13:30  |
+| Lunch                                                           | 13:30        |
 
-## To use the resulting image:
+## Docker container
 
-```sh
-docker run -e PASSWORD=<choose_a_password_for_rstudio> -p 8787:8787 YOURDOCKERIMAGENAME
+To locally run this tutorial in a
+[Docker container](ghcr.io/drighelli/bbcc_osta:latest),
+pull the Docker image via
+
 ```
-Once running, navigate to http://localhost:8787/ and then login with `rstudio`:`yourchosenpassword`. 
+docker pull ghcr.io/drighelli/bbcc_osta:latest
+``` 
 
-To try with **this** repository docker image:
+and then run the image via
 
-```sh
-docker run -e PASSWORD=abc -p 8787:8787 ghcr.io/bioconductor/buildabiocworkshop
+```
+docker run -e PASSWORD=bioc -p 8787:8787 ghcr.io/drighelli/bbcc.osta
 ```
 
-*NOTE*: Running docker that uses the password in plain text like above exposes the password to others 
-in a multi-user system (like a shared workstation or compute node). In practice, consider using an environment 
-variable instead of plain text to pass along passwords and other secrets in docker command lines. 
+Once running, navigate to http://localhost:8787/ in your browser and login with
+username `rstudio` and password `bioc`.
 
+## Local installation
 
-## Whatcha get
+This tutorial can be installed like an ordinary R package via:
 
-- https://bioconductor.github.io/BuildABiocWorkshop
-- A Docker image that you can run locally, in the cloud, or (usually) even as a singularity container on HPC systems. 
+```
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+if (!require("remotes", quietly = TRUE))
+    install.packages("remotes")
+
+BiocManager::install("Bioconductor/BBCC.OSTA",
+                     dependencies = TRUE,
+                     build_vignettes = TRUE)
+```
