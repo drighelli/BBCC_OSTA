@@ -42,7 +42,8 @@ Depends:
     spatialFDA,
     SpatialFeatureExperiment,
     spdep,
-    Voyager
+    Voyager,
+    quarto
 Suggests: 
     knitr,
     rmarkdown,
