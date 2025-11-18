@@ -43,7 +43,8 @@ Depends:
     SpatialFeatureExperiment,
     spdep,
     Voyager,
-    quarto
+    quarto,
+    BiocStyle
 Suggests: 
     knitr,
     rmarkdown,
