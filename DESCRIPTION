@@ -2,7 +2,7 @@ Package: BBCC_OSTA
 Title: Bioconductor OSTA Tutorial
 Version: 2.0.1
 Authors@R: 
-    person(given = "Dario",
+    c(person(given = "Dario",
            family = "Righelli",
            role = c("aut", "cre"),
            email = "dario.righelli@gmail.com",
@@ -16,7 +16,7 @@ Authors@R:
            family = "Scafuri",
            role = "aut",
            email = "",
-           comment = c(ORCID = ""))
+           comment = c(ORCID = "")))
 Description: This package serves as tutorial on Spatial Transcriptomics data analysis
     in Bioconductor for the BBCC2025 conference. 
 License: MIT + file LICENSE
