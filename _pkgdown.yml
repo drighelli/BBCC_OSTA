@@ -1,4 +1,4 @@
-url: https://drighelli.github.io/bbcc_osta
+url: https://drighelli.github.io/BBCC_OSTA
 
 template:
   params:
@@ -13,6 +13,6 @@ home:
 navbar:
   right:
    - icon: fa-github
-     href: https://github.com/drighelli/bbcc_osta
+     href: https://github.com/drighelli/BBCC_OSTA
      
 
