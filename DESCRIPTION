@@ -10,12 +10,12 @@ Authors@R:
     person(given = "Francesca",
            family = "Calanca",
            role = "aut",
-           email = "",
+           email = "francescacalanca@cnr.it",
            comment = c(ORCID = "")),
     person(given = "Emanuela",
            family = "Scafuri",
            role = "aut",
-           email = "",
+           email = "emanuelascafuri@cnr.it",
            comment = c(ORCID = "")))
 Description: This package serves as tutorial on Spatial Transcriptomics data analysis
     in Bioconductor for the BBCC2025 conference. 
