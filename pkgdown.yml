@@ -3,7 +3,7 @@ pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
   img-workflow-cosmx: img-workflow-cosmx.html
-last_built: 2025-11-20T14:47Z
+last_built: 2025-11-20T15:30Z
 urls:
   reference: https://drighelli.github.io/BBCC_OSTA/reference
   article: https://drighelli.github.io/BBCC_OSTA/articles
