@@ -128,7 +128,7 @@ cos <- cos[, !cos$low_qcscore]
 ```
 
 ```{r}
-SpaceTrooper::plotMetricHist(spe, "QC_score")
+# SpaceTrooper::plotMetricHist(cos, "QC_score")
 ```
 ## Processing
 
