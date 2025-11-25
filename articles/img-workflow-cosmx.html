@@ -86,23 +86,48 @@
     
     
 <div class="section level2">
-<h2 id="sec-img-workflow-cosmx">Workflow: CosMX<a class="anchor" aria-label="anchor" href="#sec-img-workflow-cosmx"></a>
+<h2 id="workflow-cosmx-data-analysis">Workflow: CosMX data analysis<a class="anchor" aria-label="anchor" href="#workflow-cosmx-data-analysis"></a>
 </h2>
-<p>{{&lt; include _start.qmd &gt;}}</p>
+<p>This workflow is part of a series of vignettes illustrating analysis
+workflows for spatial transcriptomics data using the <em><a href="https://bioconductor.org/packages/3.22/OSTA" class="external-link">OSTA</a></em>
+ecosystem. OSTA is a textbook aimed at providing practical guidance for
+the analysis of spatial transcriptomics data using Bioconductor
+packages. The book is available at <a href="https://bioconductor.org/books/release/OSTA/" class="external-link">this link</a>, a
+preprint of the book is available at <a href="https://www.biorxiv.org/content/10.1101/2025.11.20.688607v1" class="external-link">this
+link</a>, and the code repository is at <a href="https://github.com/lmweber/OSTA" class="external-link">this link</a>.</p>
+<p>This workflow extends the existing workflow present in OSTA book,
+with additional details specifically suited for the <a href="https://www.bbcc-meetings.it/" class="external-link">BBCC25 conference</a>.</p>
 <div class="section level3">
-<h3 id="preamble">Preamble<a class="anchor" aria-label="anchor" href="#preamble"></a>
+<h3 id="instructors">Instructors:<a class="anchor" aria-label="anchor" href="#instructors"></a>
 </h3>
-<div class="section level4">
-<h4 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
-</h4>
-<p>In this demo, we will analyze a 1k-plex CosMx data (Bruker) of a
-mouse brain sample; see <span class="citation">@sec-bkg-example-datasets</span>. Following quality
-control and preprocessing, we will perform cell type annotation,
-identification of marker genes, and cell-cell interaction analysis.</p>
+<ul>
+<li>Dario Righelli<sup>1</sup>
+</li>
+<li>Francesca Calanca<sup>2,3</sup>
+</li>
+<li>Emanuela Scafuri<sup>2,3</sup>
+</li>
+</ul>
+<p>1 Department of Electrical Engineer and Information Technology,
+University of Naples “Federico II”, Italy<br>
+2 Department of Chemical, Materials and Production Engineering,
+University of Naples “Federico II”, Italy<br>
+3 Institute for Applied Mathematics “M. Picone”, IAC-CNR, Naples,
+Italy</p>
 </div>
-<div class="section level4">
-<h4 id="sec-img-workflow-cosmx-load-data">Dependencies<a class="anchor" aria-label="anchor" href="#sec-img-workflow-cosmx-load-data"></a>
-</h4>
+</div>
+<div class="section level2">
+<h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
+</h2>
+<p>In this demo, we will analyze a 1k-plex CosMx data (Bruker) of a
+mouse brain sample, see other datasets at <a href="https://bioconductor.org/books/release/OSTA/pages/bkg-example-datasets.html" class="external-link">this
+link</a> for additional examples and exercising yourself. Main shown
+steps are quality control and preprocessing, cell type annotation,
+identification of marker genes, and cell-cell interaction analysis.</p>
+<div class="section level3">
+<h3 id="dependencies">Dependencies<a class="anchor" aria-label="anchor" href="#dependencies"></a>
+</h3>
+<p>We now load all the required libraries.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/peicai/DESpace" class="external-link">DESpace</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
@@ -124,6 +149,19 @@ identification of marker genes, and cell-cell interaction analysis.</p>
 <span><span class="co"># set seed for random number generation</span></span>
 <span><span class="co"># in order to make results reproducible</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">112358</span><span class="op">)</span></span></code></pre></div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="load-data">Load data<a class="anchor" aria-label="anchor" href="#load-data"></a>
+</h2>
+<p>We load the dataset which was pre-stored in the
+<code>OSTA.data</code> package. The dataset contains about 50,000 cells
+profiled for about 1,000 RNA targets. We then use the
+<code>readCosmxSXE</code> function from the
+<code>SpatialExperimentIO</code> package to read the data into a
+<code>SpatialExperiment</code> object. Finally, we prepare the data for
+analysis with <code>SpaceTrooper</code> by updating the object and
+reading the cell polygons.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># retrieve CosMx dataset from OSF repo</span></span>
 <span><span class="va">id</span> <span class="op">&lt;-</span> <span class="st">"CosMx1k_MouseBrain2"</span></span>
@@ -134,7 +172,7 @@ identification of marker genes, and cell-cell interaction analysis.</p>
 <span><span class="co"># prepare data for 'SpaceTrooper'</span></span>
 <span><span class="va">cos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/updateCosmxSPE.html" class="external-link">updateCosmxSPE</a></span><span class="op">(</span><span class="va">cos</span>, <span class="va">td</span>, sampleName<span class="op">=</span><span class="st">"CosMx"</span><span class="op">)</span></span>
 <span><span class="va">cos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/readAndAddPolygonsToSPE.html" class="external-link">readAndAddPolygonsToSPE</a></span><span class="op">(</span><span class="va">cos</span><span class="op">)</span></span>
-<span><span class="va">cos</span><span class="op">$</span><span class="va">in_tissue</span> <span class="op">&lt;-</span> <span class="cn">TRUE</span></span>
+<span><span class="va">cos</span><span class="op">$</span><span class="va">in_tissue</span> <span class="op">&lt;-</span> <span class="cn">TRUE</span> <span class="co"># artifact to work with ggspavis</span></span>
 <span><span class="va">cos</span></span></code></pre></div>
 <pre><code><span><span class="co">## class: SpatialExperiment </span></span>
 <span><span class="co">## dim: 950 48556 </span></span>
@@ -149,11 +187,20 @@ identification of marker genes, and cell-cell interaction analysis.</p>
 <span><span class="co">## altExpNames(1): NegPrb</span></span>
 <span><span class="co">## spatialCoords names(2) : CenterX_global_px CenterY_global_px</span></span>
 <span><span class="co">## imgData names(1): sample_id</span></span></code></pre>
+<p>You can access additional metadata of the SpatialExperiment object
+<code>cos</code> as follows: - colData(cos): cell-level metadata,
+including FOV ID, cell area, and QC metrics. - alternatively, you can
+directly access a specific metadata column with
+<code>cos$&lt;column_name&gt;</code>. (e.g., <code>cos$fov</code> gives
+the FOV IDs for each cell). - rowData(cos): gene-level metadata,
+including gene names and biotypes. - assays(cos): names of the assays
+available in the object (e.g., “counts” for raw counts, “logcounts” for
+log-normalized counts if available). - spatialCoords(cos): spatial
+coordinates of the cells.</p>
 </div>
-</div>
-<div class="section level3">
-<h3 id="quality-control">Quality control<a class="anchor" aria-label="anchor" href="#quality-control"></a>
-</h3>
+<div class="section level2">
+<h2 id="basic-visualization">Basic Visualization<a class="anchor" aria-label="anchor" href="#basic-visualization"></a>
+</h2>
 <p>We can have an overview of the data, by plotting the spatial
 distribution of the cells, represented by their centroids. This is
 useful to have a global bird’s-eye-view of the tissue.</p>
@@ -167,10 +214,29 @@ spatial arrangement.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/plotCellsFovs.html" class="external-link">plotCellsFovs</a></span><span class="op">(</span><span class="va">cos</span><span class="op">)</span></span></code></pre></div>
 <p><img src="img-workflow-cosmx_files/figure-html/plot-fov-map-1.png" class="r-plt" width="66%" style="display: block; margin: auto;"></p>
-<p><span class="citation">@sec-img-quality-control</span> gives a
-thorough overview of quality control steps for imaging-based spatial
-transcriptomics data, including CosMX-specific metrics. Here, we will
-simply compute <em><a href="https://bioconductor.org/packages/3.22/SpaceTrooper" class="external-link">SpaceTrooper</a></em>’s
+</div>
+<div class="section level2">
+<h2 id="excercises">Excercises:<a class="anchor" aria-label="anchor" href="#excercises"></a>
+</h2>
+<ol style="list-style-type: decimal">
+<li>Explore the <code>cos</code> object using <code>colData(cos)</code>,
+<code>rowData(cos)</code>, and <code>assays(cos)</code>.</li>
+<li>How many cells and genes are in the dataset? (hint: use
+<code>dim(cos)</code>)</li>
+<li>Explore the cell metadata. What information is available for each
+cell? Do you recognize something specific to CosMx data?</li>
+<li>Check the distribution of counts across cells. Are there any cells
+with very low counts?</li>
+<li>Extract the spatial coordinates of the cells using
+<code>spatialCoords(cos)</code>. What is the range of the x and y
+coordinates?</li>
+<li>plot the centroids of the cell using
+<code>plotCentroids(cos)</code>. Colouring them for a specific cell
+metadata.</li>
+</ol>
+<p>gives a thorough overview of quality control steps for imaging-based
+spatial transcriptomics data, including CosMX-specific metrics. Here, we
+will simply compute <em><a href="https://bioconductor.org/packages/3.22/SpaceTrooper" class="external-link">SpaceTrooper</a></em>’s
 aggregated QC score and keep the cells that pass the threshold.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lys</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"NegPrb"</span>, <span class="st">"Negative"</span>, <span class="st">"SystemControl"</span><span class="op">)</span></span>
@@ -186,30 +252,31 @@ aggregated QC score and keep the cells that pass the threshold.</p>
 <p><img src="img-workflow-cosmx_files/figure-html/filter-qc-cosmx-1.png" class="r-plt" width="700"></p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cos</span> <span class="op">&lt;-</span> <span class="va">cos</span><span class="op">[</span>, <span class="op">!</span><span class="va">cos</span><span class="op">$</span><span class="va">low_qcscore</span><span class="op">]</span></span></code></pre></div>
-</div>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># SpaceTrooper::plotMetricHist(cos, "QC_score")</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="processing">Processing<a class="anchor" aria-label="anchor" href="#processing"></a>
 </h3>
 <p>For the sake of runtime, we will perform downstream analyses only on
 a small portion of the tissue, defined by the following FOVs:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">72</span><span class="op">:</span><span class="fl">74</span>, <span class="fl">90</span><span class="op">:</span><span class="fl">92</span>, <span class="fl">97</span><span class="op">:</span><span class="fl">99</span>, <span class="fl">114</span><span class="op">:</span><span class="fl">116</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/plotZoomFovsMap.html" class="external-link">plotZoomFovsMap</a></span><span class="op">(</span><span class="va">cos</span>, fovs<span class="op">=</span><span class="va">fs</span><span class="op">)</span></span></code></pre></div>
 <p><img src="img-workflow-cosmx_files/figure-html/subset-fovs-cosmx-1.png" class="r-plt" width="700"></p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sub</span> <span class="op">&lt;-</span> <span class="va">cos</span><span class="op">[</span>, <span class="va">cos</span><span class="op">$</span><span class="va">fov</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">fs</span><span class="op">]</span></span></code></pre></div>
 <p>Next, we’ll log-normalize counts by area, and perform principal
 component analysis (PCA) on all 950 RNA targets: <span class="aside">See
 <span class="citation">@sec-ind-normalization</span> for more details on
 normalization.</span></p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># cell area-based normalization</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/assays.html" class="external-link">logcounts</a></span><span class="op">(</span><span class="va">sub</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sweep.html" class="external-link">sweep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assay</a></span><span class="op">(</span><span class="va">sub</span><span class="op">)</span>, <span class="fl">2</span>, <span class="va">sub</span><span class="op">$</span><span class="va">Area</span>, <span class="va">`/`</span><span class="op">)</span></span>
 <span><span class="co"># principal component analysis</span></span>
 <span><span class="va">sub</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/runPCA.html" class="external-link">runPCA</a></span><span class="op">(</span><span class="va">sub</span><span class="op">)</span></span></code></pre></div>
 <p>Let’s visualize the expression of the first two principal components
 (PCs) in the spatial context.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># add PCs as cell metadata</span></span>
 <span><span class="va">pcs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">sub</span>, <span class="st">"PCA"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sub</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sub</span><span class="op">)</span>, <span class="va">pcs</span><span class="op">)</span></span>
@@ -223,10 +290,10 @@ normalization.</span></p>
 </h3>
 <p>Here, we use the <span class="citation">@zeisel2015cell</span>
 dataset as a reference to annotate the cell types with <em><a href="https://bioconductor.org/packages/3.22/SingleR" class="external-link">SingleR</a></em>.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sceZ</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scRNAseq/man/ZeiselBrainData.html" class="external-link">ZeiselBrainData</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">sceZ</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts</a></span><span class="op">(</span><span class="va">sceZ</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SingleR/man/SingleR.html" class="external-link">SingleR</a></span><span class="op">(</span>test<span class="op">=</span><span class="va">sub</span>, ref<span class="op">=</span><span class="va">sceZ</span>, labels<span class="op">=</span><span class="va">sceZ</span><span class="op">$</span><span class="va">level1class</span>, de.method<span class="op">=</span><span class="st">"wilcox"</span><span class="op">)</span></span>
 <span><span class="va">sub</span><span class="op">$</span><span class="va">SingleR_label</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">pred</span><span class="op">$</span><span class="va">pruned.labels</span><span class="op">)</span></span>
 <span></span>
@@ -259,7 +326,7 @@ details.</p>
 package <span class="citation">[@Cai2024-DESpace]</span>. In this
 workflow, we use this as a way to identify marker genes for the cell
 types annotated above.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://peicai.github.io/DESpace/reference/svg_test.html" class="external-link">svg_test</a></span><span class="op">(</span>spe<span class="op">=</span><span class="va">sub</span>, cluster_col<span class="op">=</span><span class="st">"SingleR_label"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res</span><span class="op">$</span><span class="va">gene_results</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##         gene_id       LR   logCPM PValue FDR</span></span>
@@ -272,7 +339,7 @@ types annotated above.</p>
 <p>We focus on the genes with the smallest p-values, and compute the
 average expression of each gene in each cell type. We can visualize this
 with a heatmap.</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="va">res</span><span class="op">$</span><span class="va">gene_results</span></span>
 <span><span class="va">gs</span> <span class="op">&lt;-</span> <span class="va">df</span><span class="op">$</span><span class="va">gene_id</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/rank.html" class="external-link">rank</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">PValue</span>, ties.method<span class="op">=</span><span class="st">"min"</span><span class="op">)</span> <span class="op">==</span> <span class="fl">1</span><span class="op">]</span></span>
 <span><span class="va">mu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sub</span><span class="op">)</span><span class="op">[</span><span class="va">gs</span>, <span class="op">]</span>, <span class="fl">1</span>, <span class="va">tapply</span>, <span class="va">sub</span><span class="op">$</span><span class="va">SingleR_label</span>, <span class="va">mean</span><span class="op">)</span><span class="op">)</span></span>
@@ -287,7 +354,7 @@ genes, e.g., Mbp that marks oligodendrocytes, and Calm1, Calm2, and
 Snap25 that mark different subsets of neurons. Note also how some genes
 show a difference of expression within the pyramidal neuron population,
 suggesting the presence of subtypes.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Mbp"</span>, <span class="st">"Calm1"</span>, <span class="st">"Calm2"</span>, <span class="st">"Snap25"</span><span class="op">)</span></span>
 <span><span class="va">ps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">gs</span>, \<span class="op">(</span><span class="va">g</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="va">sub</span><span class="op">[[</span><span class="va">g</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/assays.html" class="external-link">logcounts</a></span><span class="op">(</span><span class="va">sub</span><span class="op">)</span><span class="op">[</span><span class="va">g</span>, <span class="op">]</span></span>
@@ -316,7 +383,7 @@ nearest neighbors (kNN) method to define the neighborhood graph. Here,
 we prefer to use a distance-based approach, as it better captures the
 morphological structure of this tissue area.</p>
 </div>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># convert to SFE &amp; remove cells with NA labels</span></span>
 <span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/methods/as.html" class="external-link">as</a></span><span class="op">(</span><span class="va">sub</span>, <span class="st">"SpatialFeatureExperiment"</span><span class="op">)</span></span>
 <span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="va">sfe</span><span class="op">[</span>, <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">$</span><span class="va">SingleR_label</span><span class="op">)</span><span class="op">]</span></span>
@@ -342,7 +409,7 @@ spatial autocorrelation for specific genes in the dataset.</p>
 <p>Here, we focus on Snap25 and Calm1, neuronal marker genes identified
 above that show interesting spatial expression distributions (see
 above). First, we compute the local Moran’s I coefficient.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Snap25"</span>, <span class="st">"Calm1"</span><span class="op">)</span></span>
 <span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Voyager/man/calculateUnivariate.html" class="external-link">runUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>,</span>
 <span>    features<span class="op">=</span><span class="va">gs</span>,</span>
@@ -364,7 +431,7 @@ shows a more diffuse autocorrelation structure.</p>
 a Moran scatter plot, which shows the relationship between the
 expression of the gene in each cell and the average expression in its
 neighbors.</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Voyager/man/calculateUnivariate.html" class="external-link">runUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>,</span>
 <span>    feature<span class="op">=</span><span class="va">gs</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
 <span>    zero.policy<span class="op">=</span><span class="cn">TRUE</span>,</span>
@@ -380,7 +447,7 @@ neighbors.</p>
 <p>We can then classify cells based on the significance of their local
 Moran’s I values, and visualize the resulting clusters in the spatial
 context.</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/localResults.html" class="external-link">localResults</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[[</span><span class="st">"localmoran"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="va">res</span><span class="op">$</span><span class="va">locClust</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">res</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span></span>
 <span>    <span class="va">`-log10p_adj`</span> <span class="op">&gt;</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log10</a></span><span class="op">(</span><span class="fl">0.05</span><span class="op">)</span>, </span>
@@ -413,7 +480,7 @@ interactions between different cell types annotated above. Here, we use
 the join count statistic implemented in the <em><a href="https://CRAN.R-project.org/package=spdep" class="external-link">spdep</a></em> package
 to quantify the tendency of cells of different types to be
 neighbors.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">jc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/spdep/reference/joincount.multi.html" class="external-link">joincount.multi</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">$</span><span class="va">SingleR_label</span>, <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"poly2nb"</span><span class="op">)</span>, zero.policy<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">jc</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">jc</span><span class="op">[</span>, <span class="st">"z-value"</span><span class="op">]</span><span class="op">)</span>, decreasing<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>, <span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##                                     Joincount   Expected  Variance   z-value</span></span>
@@ -448,7 +515,7 @@ that does not take into account tissue structure and cell density
 variations across the tissue. Hence, these plots should be considered as
 exploratory analyses rather than formal hypothesis tests.</p>
 </div>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/spatialFDA/man/calcMetricPerFov.html" class="external-link">calcMetricPerFov</a></span><span class="op">(</span></span>
 <span>    spe<span class="op">=</span><span class="va">sub</span>, fun<span class="op">=</span><span class="st">"Lest"</span>,</span>
 <span>    subsetby<span class="op">=</span><span class="st">"sample_id"</span>, </span>
@@ -476,7 +543,7 @@ cells at a distance smaller than their size.</p>
 investigate the interaction between two different cell types, e.g.,
 pyramidal CA1 neurons and oligodendrocytes, using the cross-L
 function.</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/spatialFDA/man/calcMetricPerFov.html" class="external-link">calcMetricPerFov</a></span><span class="op">(</span></span>
 <span>    spe<span class="op">=</span><span class="va">sub</span>, fun<span class="op">=</span><span class="st">"Lcross"</span>, </span>
 <span>    subsetby<span class="op">=</span><span class="st">"sample_id"</span>, </span>
@@ -511,7 +578,7 @@ websites.</p>
 <div class="section level2">
 <h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## R version 4.5.2 (2025-10-31)</span></span>
 <span><span class="co">## Platform: x86_64-pc-linux-gnu</span></span>
@@ -601,8 +668,8 @@ websites.</p>
 <span><span class="co">##  [89] BiocIO_1.20.0             locfit_1.5-9.12          </span></span>
 <span><span class="co">##  [91] sp_2.2-0                  bit_4.6.0                </span></span>
 <span><span class="co">##  [93] terra_1.8-80              sandwich_3.1-1           </span></span>
-<span><span class="co">##  [95] dplyr_1.1.4               codetools_0.2-20         </span></span>
-<span><span class="co">##  [97] multcomp_1.4-29           textshaping_1.0.4        </span></span>
+<span><span class="co">##  [95] dplyr_1.1.4               multcomp_1.4-29          </span></span>
+<span><span class="co">##  [97] codetools_0.2-20          textshaping_1.0.4        </span></span>
 <span><span class="co">##  [99] BiocSingular_1.26.1       bslib_0.9.0              </span></span>
 <span><span class="co">## [101] e1071_1.7-16              alabaster.ranges_1.10.0  </span></span>
 <span><span class="co">## [103] fds_1.8                   splines_4.5.2            </span></span>

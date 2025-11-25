@@ -82,13 +82,13 @@
 <h2 id="speakers">Speakers<a class="anchor" aria-label="anchor" href="#speakers"></a>
 </h2>
 <ul>
-<li>Dario Righelli<sup>1<sup></sup></sup>
-</li>
-<li>Francesca Calanca<sup>2,3<sup></sup></sup>
-</li>
-<li>Emanuela Scafuri<sup>2,3<sup> 1 Department of Electrical Engineer and Information Technology, University of Naples “Federico II”, Italy<br>
+<li><p>Dario Righelli<sup>1<sup></sup></sup></p></li>
+<li><p>Francesca Calanca<sup>2,3<sup></sup></sup></p></li>
+<li>
+<p>Emanuela Scafuri<sup>2,3<sup></sup></sup></p>
+<p>1 Department of Electrical Engineer and Information Technology, University of Naples “Federico II”, Italy<br>
 2 Department of Chemical, Materials and Production Engineering, University of Naples “Federico II”, Italy<br>
-3 Institute for Applied Mathematics “M. Picone”, IAC-CNR, Naples, Italy</sup></sup>
+3 Institute for Applied Mathematics “M. Picone”, IAC-CNR, Naples, Italy</p>
 </li>
 </ul>
 </div>
@@ -119,18 +119,18 @@ Like the book, this tutorial has been structured to provide a theoretical and pr
 <tbody>
 <tr>
 <td>Introduction and Setup</td>
-<td>9:00-9:15</td>
+<td>9:00-9:30</td>
 </tr>
 <tr>
 <td>Theoretical overview</td>
-<td>9:15-10:45</td>
+<td>9:30-10:30</td>
 </tr>
 <tr>
 <td>Introduction to the workflow</td>
-<td>10:45-11:00</td>
+<td>10:30-11:00</td>
 </tr>
 <tr>
-<td>Coffee break</td>
+<td>Break</td>
 <td>11:00-11:15</td>
 </tr>
 <tr>
@@ -160,9 +160,10 @@ Like the book, this tutorial has been structured to provide a theoretical and pr
 <h2 id="docker-container">Docker container<a class="anchor" aria-label="anchor" href="#docker-container"></a>
 </h2>
 <p>To locally run this tutorial in a <a href="ghcr.io/drighelli/bbcc_osta:latest">Docker container</a>, pull the Docker image via</p>
-<pre><code>docker pull ghcr.io/drighelli/bbcc_osta:latest</code></pre>
+<pre><code>docker pull ghcr.io/drighelli/bbcc_osta:latest
+docker tag ghcr.io/drighelli/bbcc_osta:latest bbcc_osta</code></pre>
 <p>and then run the image via</p>
-<pre><code>docker run -e PASSWORD=bioc -p 8787:8787 ghcr.io/drighelli/bbcc.osta</code></pre>
+<pre><code>docker run -e PASSWORD=bioc -p 8787:8787 bbcc_osta</code></pre>
 <p>Once running, navigate to <a href="http://localhost:8787/" class="external-link uri">http://localhost:8787/</a> in your browser and login with username <code>rstudio</code> and password <code>bioc</code>.</p>
 </div>
 <div class="section level2">
