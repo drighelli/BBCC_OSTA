@@ -7,6 +7,7 @@
 * Dario Righelli<sup>1<sup>
 * Francesca Calanca<sup>2,3<sup>
 * Emanuela Scafuri<sup>2,3<sup>
+
     1 Department of Electrical Engineer and Information Technology, University of Naples "Federico II", Italy\
     2 Department of Chemical, Materials and Production Engineering, University of Naples "Federico II", Italy\
     3 Institute for Applied Mathematics "M. Picone", IAC-CNR, Naples, Italy
