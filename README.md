@@ -4,12 +4,12 @@
 
 ## Speakers
 
-* Dario Righelli, Department of Statistical Sciences, University of Padova, Italy
-* Francesca Calanca<sup>1,2<sup>
-* Emanuela Scafuri<sup>1,2<sup>
-
-    1 Department of Chemical, Materials and Production Engineering, University of Naples, Italy\
-    2 Institute for Applied Mathematics "M. Picone", IAC-CNR, Naples, Italy
+* Dario Righelli<sup>1<sup>
+* Francesca Calanca<sup>2,3<sup>
+* Emanuela Scafuri<sup>2,3<sup>
+    1 Department of Electrical Engineer and Information Technology, University of Naples "Federico II", Italy\
+    2 Department of Chemical, Materials and Production Engineering, University of Naples "Federico II", Italy\
+    3 Institute for Applied Mathematics "M. Picone", IAC-CNR, Naples, Italy
 
 ## Description
 
@@ -40,7 +40,7 @@ In particular, participants will learn:
 | Coffee break                                                    | 11:00-11:15  |
 | Exploratory Data Analysis and Quality Control (QC)              | 11:15-11:45  |
 | Cell type annotation & marker genes identification              | 11:45-12:15  |
-| Neighbourhood-based analyses                                     | 12:15-13:00  |
+| Neighbourhood-based analyses                                    | 12:15-13:00  |
 | Downstream Analyses                                             | 13:00-13:45  |
 | Q&A + Discussion session                                        | 13:45-14:00  |
 
