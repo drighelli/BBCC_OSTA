@@ -8,17 +8,34 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-# Workflow: CosMX {#sec-img-workflow-cosmx}
+# Workflow: CosMX data analysis
 
-{{< include _start.qmd >}}
+This workflow is part of a series of vignettes illustrating analysis workflows for spatial transcriptomics data using the `r BiocStyle::Biocpkg("OSTA")` ecosystem. 
+OSTA is a textbook aimed at providing practical guidance for the analysis of spatial transcriptomics data using Bioconductor packages.
+The book is available at [this link](https://bioconductor.org/books/release/OSTA/), a preprint of the book is available at [this link](https://www.biorxiv.org/content/10.1101/2025.11.20.688607v1), and the code repository is at [this link](https://github.com/lmweber/OSTA).
 
-## Preamble
+This workflow extends the existing workflow present in OSTA book, with additional details specifically
+suited for the [BBCC25 conference](https://www.bbcc-meetings.it/).
 
-### Introduction
+## Instructors:
 
-In this demo, we will analyze a 1k-plex CosMx data (Bruker) of a mouse brain sample; see @sec-bkg-example-datasets. Following quality control and preprocessing, we will perform cell type annotation, identification of marker genes, and cell-cell interaction analysis.
+* Dario Righelli^1^
+* Francesca Calanca^2,3^
+* Emanuela Scafuri^2,3^
 
-### Dependencies {#sec-img-workflow-cosmx-load-data}
+1 Department of Electrical Engineer and Information Technology, University of Naples "Federico II", Italy\
+2 Department of Chemical, Materials and Production Engineering, University of Naples "Federico II", Italy\
+3 Institute for Applied Mathematics "M. Picone", IAC-CNR, Naples, Italy
+
+
+# Introduction
+
+In this demo, we will analyze a 1k-plex CosMx data (Bruker) of a mouse brain sample, see  other datasets at [this link](https://bioconductor.org/books/release/OSTA/pages/bkg-example-datasets.html) for additional examples and exercising yourself. 
+Main shown steps are quality control and preprocessing, cell type annotation, identification of marker genes, and cell-cell interaction analysis.
+
+## Dependencies
+
+We now load all the required libraries.
 
 ```{r load-libs, message=FALSE, warning=FALSE}
 library(DESpace)
@@ -43,6 +60,11 @@ library(Voyager)
 set.seed(112358)
 ```
 
+# Load data
+
+We load the dataset which was pre-stored in the `OSTA.data` package. The dataset contains about 50,000 cells profiled for about 1,000 RNA targets.
+We then use the `readCosmxSXE` function from the `SpatialExperimentIO` package to read the data into a `SpatialExperiment` object. Finally, we prepare the data for analysis with `SpaceTrooper` by updating the object and reading the cell polygons.
+
 ```{r load-cos, message=FALSE, warning=FALSE}
 # retrieve CosMx dataset from OSF repo
 id <- "CosMx1k_MouseBrain2"
@@ -53,11 +75,18 @@ cos <- readCosmxSXE(td, addTx=FALSE)
 # prepare data for 'SpaceTrooper'
 cos <- updateCosmxSPE(cos, td, sampleName="CosMx")
 cos <- readAndAddPolygonsToSPE(cos)
-cos$in_tissue <- TRUE
+cos$in_tissue <- TRUE # artifact to work with ggspavis
 cos
 ```
 
-## Quality control
+You can access additional metadata of the SpatialExperiment object `cos` as follows:
+- colData(cos): cell-level metadata, including FOV ID, cell area, and QC metrics.
+    - alternatively, you can directly access a specific metadata column with `cos$<column_name>`. (e.g., `cos$fov` gives the FOV IDs for each cell).
+- rowData(cos): gene-level metadata, including gene names and biotypes.
+- assays(cos): names of the assays available in the object (e.g., "counts" for raw counts, "logcounts" for log-normalized counts if available).
+- spatialCoords(cos): spatial coordinates of the cells.
+
+# Basic Visualization
 
 We can have an overview of the data, by plotting the spatial distribution of the cells, represented by their centroids. This is useful to have a global bird’s-eye-view of the tissue.
 
@@ -71,7 +100,17 @@ Unlike, Xenium and MERSCOPE, CosMx does not stitch fields of view (FOVs) in a si
 plotCellsFovs(cos)
 ```
 
- @sec-img-quality-control gives a thorough overview of quality control steps for imaging-based spatial transcriptomics data, including CosMX-specific metrics. Here, we will simply compute `r BiocStyle::Biocpkg("SpaceTrooper")`'s aggregated QC score and keep the cells that pass the threshold.
+# Excercises:
+
+1. Explore the `cos` object using `colData(cos)`, `rowData(cos)`, and `assays(cos)`.
+2. How many cells and genes are in the dataset? (hint: use `dim(cos)`)
+3. Explore the cell metadata. What information is available for each cell? Do you recognize something specific to CosMx data?
+4. Check the distribution of counts across cells. Are there any cells with very low counts?
+5. Extract the spatial coordinates of the cells using `spatialCoords(cos)`. What is the range of the x and y coordinates?
+6. plot the centroids of the cell using `plotCentroids(cos)`. Colouring them for a specific cell metadata.
+
+
+  gives a thorough overview of quality control steps for imaging-based spatial transcriptomics data, including CosMX-specific metrics. Here, we will simply compute `r BiocStyle::Biocpkg("SpaceTrooper")`'s aggregated QC score and keep the cells that pass the threshold.
 
 ```{r qc-cosmx, message=FALSE}
 lys <- c("NegPrb", "Negative", "SystemControl")
@@ -88,6 +127,9 @@ plotCentroids(cos, colourBy="low_qcscore") +
 cos <- cos[, !cos$low_qcscore]
 ```
 
+```{r}
+SpaceTrooper::plotMetricHist(spe, "QC_score")
+```
 ## Processing
 
 For the sake of runtime, we will perform downstream analyses only on

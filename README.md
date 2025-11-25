@@ -35,10 +35,10 @@ In particular, participants will learn:
 
 | Activity                     | Time |
 |------------------------------|------|
-| Introduction and Setup                                          | 9:00-9:15    |
-| Theoretical overview                                            | 9:15-10:45   |
-| Introduction to the workflow                                    | 10:45-11:00  |
-| Coffee break                                                    | 11:00-11:15  |
+| Introduction and Setup                                          | 9:00-9:30    |
+| Theoretical overview                                            | 9:30-10:30   |
+| Introduction to the workflow                                    | 10:30-11:00  |
+| Break                                                           | 11:00-11:15  |
 | Exploratory Data Analysis and Quality Control (QC)              | 11:15-11:45  |
 | Cell type annotation & marker genes identification              | 11:45-12:15  |
 | Neighbourhood-based analyses                                    | 12:15-13:00  |
@@ -53,12 +53,13 @@ pull the Docker image via
 
 ```
 docker pull ghcr.io/drighelli/bbcc_osta:latest
+docker tag ghcr.io/drighelli/bbcc_osta:latest bbcc_osta
 ``` 
 
 and then run the image via
 
 ```
-docker run -e PASSWORD=bioc -p 8787:8787 ghcr.io/drighelli/bbcc.osta
+docker run -e PASSWORD=bioc -p 8787:8787 bbcc_osta
 ```
 
 Once running, navigate to http://localhost:8787/ in your browser and login with
