@@ -159,9 +159,13 @@ Like the book, this tutorial has been structured to provide a theoretical and pr
 <div class="section level2">
 <h2 id="docker-container">Docker container<a class="anchor" aria-label="anchor" href="#docker-container"></a>
 </h2>
+<p>Download <a href="https://www.docker.com/get-started/" class="external-link">Docker desktop</a>.<br>
+Open the docker app.<br>
+Ensure that Docker is running!!</p>
 <p>To locally run this tutorial in a <a href="ghcr.io/drighelli/bbcc_osta:latest">Docker container</a>, pull the Docker image via</p>
 <pre><code>docker pull ghcr.io/drighelli/bbcc_osta:latest
 docker tag ghcr.io/drighelli/bbcc_osta:latest bbcc_osta</code></pre>
+<p>Note. The download can take some time, the image is around 9 GB.</p>
 <p>and then run the image via</p>
 <pre><code>docker run -e PASSWORD=bioc -p 8787:8787 bbcc_osta</code></pre>
 <p>Once running, navigate to <a href="http://localhost:8787/" class="external-link uri">http://localhost:8787/</a> in your browser and login with username <code>rstudio</code> and password <code>bioc</code>.</p>
