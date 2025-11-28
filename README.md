@@ -47,6 +47,10 @@ In particular, participants will learn:
 
 ## Docker container
 
+Download [Docker desktop](https://www.docker.com/get-started/).\
+Open the docker app.\
+Ensure that Docker is running!!
+
 To locally run this tutorial in a
 [Docker container](ghcr.io/drighelli/bbcc_osta:latest),
 pull the Docker image via
@@ -55,6 +59,8 @@ pull the Docker image via
 docker pull ghcr.io/drighelli/bbcc_osta:latest
 docker tag ghcr.io/drighelli/bbcc_osta:latest bbcc_osta
 ``` 
+Note. The download can take some time, the image is around 9 GB.
+
 
 and then run the image via
 
