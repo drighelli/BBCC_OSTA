@@ -183,7 +183,17 @@ SpaceTrooper::plotMetricHist(cos, "QC_score")
 cos <- cos[, !cos$low_qcscore]
 ```
 
-## Processing
+
+# Excercises:
+
+1. Explore the newly added QC metrics in `colData(cos)`. What do they represent?
+2. Visualize the distribution of another QC metric, e.g., `log2NegativeArea
+3. Are you able to identify outlier cells based on this metric? how you visualize them?
+4. Visualize the spatial distribution of another QC metric.
+5. Compute the outliers for the QC_score (before filtering low qc cells) using both methods (sc and mc). How many cells are flagged as low quality by each method?
+
+
+# Processing
 
 For the sake of runtime and laptop phisical limitations, we will perform downstream analyses only on
 a small portion of the tissue, defined by the following FOVs:
@@ -196,10 +206,8 @@ sub <- cos[, cos$fov %in% fs]
 
 Next, we'll log-normalize counts by area, and perform principal 
 component analysis (PCA) on all `r nrow(cos)` RNA targets:
-[See @sec-ind-normalization for more details on normalization.]{.aside}
 
 ```{r pro}
-
 # cell area-based normalization
 logcounts(sub) <- sweep(assay(sub), 2, sub$Area, `/`)
 # principal component analysis
