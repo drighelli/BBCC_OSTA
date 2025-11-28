@@ -159,9 +159,10 @@ identification of marker genes, and cell-cell interaction analysis.</p>
 profiled for about 1,000 RNA targets. We then use the
 <code>readCosmxSXE</code> function from the
 <code>SpatialExperimentIO</code> package to read the data into a
-<code>SpatialExperiment</code> object. Finally, we prepare the data for
-analysis with <code>SpaceTrooper</code> by updating the object and
-reading the cell polygons.</p>
+<code>SpatialExperiment</code> object. Then, it is possible to adapt the
+dataset to work with <code>SpaceTrooper</code> by updating the object
+and reading the cell polygons (this process is optional if we don’t need
+the polygons).</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># retrieve CosMx dataset from OSF repo</span></span>
 <span><span class="va">id</span> <span class="op">&lt;-</span> <span class="st">"CosMx1k_MouseBrain2"</span></span>
@@ -187,10 +188,22 @@ reading the cell polygons.</p>
 <span><span class="co">## altExpNames(1): NegPrb</span></span>
 <span><span class="co">## spatialCoords names(2) : CenterX_global_px CenterY_global_px</span></span>
 <span><span class="co">## imgData names(1): sample_id</span></span></code></pre>
-<p>You can access additional metadata of the SpatialExperiment object
-<code>cos</code> as follows: - colData(cos): cell-level metadata,
-including FOV ID, cell area, and QC metrics. - alternatively, you can
-directly access a specific metadata column with
+<p>In alternative, it is possible to directly load imaging-based
+technologies dataset using the SpaceTrooper package with one of the
+following commands. Note that for adding the poligons to the
+SpatialExperiment object, you can use the
+<code>readAndAddPolygonsToSPE</code> function as shown above, or just
+use the keepPolygons=TRUE argument (for xenium and merfish) in the
+reading functions.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/readCosmxSPE.html" class="external-link">readCosmxSPE</a></span><span class="op">(</span><span class="va">td</span>, sampleName <span class="op">=</span> <span class="st">"CosMx"</span><span class="op">)</span></span>
+<span><span class="va">cospro</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/readCosmxSPE.html" class="external-link">readCosmxProteinSPE</a></span><span class="op">(</span><span class="va">td</span>, sampleName <span class="op">=</span> <span class="st">"CosMxProtein"</span><span class="op">)</span></span>
+<span><span class="va">xen</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/readXeniumSPE.html" class="external-link">readXeniumSPE</a></span><span class="op">(</span>dirName <span class="op">=</span> <span class="st">"path/to/xenium/data"</span>, sampleName <span class="op">=</span> <span class="st">"Xenium"</span>, keepPolygons <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">mer</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/readMerfishSPE.html" class="external-link">readMerfishSPE</a></span><span class="op">(</span>dirName <span class="op">=</span> <span class="st">"path/to/merscope/data"</span>, sampleName <span class="op">=</span> <span class="st">"MERSCOPE"</span>, keepPolygons <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<p>Once loaded, you can access additional metadata of the
+SpatialExperiment object <code>cos</code> as follows: - colData(cos):
+cell-level metadata, including FOV ID, cell area, and QC metrics. -
+alternatively, you can directly access a specific metadata column with
 <code>cos$&lt;column_name&gt;</code>. (e.g., <code>cos$fov</code> gives
 the FOV IDs for each cell). - rowData(cos): gene-level metadata,
 including gene names and biotypes. - assays(cos): names of the assays
@@ -204,14 +217,14 @@ coordinates of the cells.</p>
 <p>We can have an overview of the data, by plotting the spatial
 distribution of the cells, represented by their centroids. This is
 useful to have a global bird’s-eye-view of the tissue.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/plotCentroids.html" class="external-link">plotCentroids</a></span><span class="op">(</span><span class="va">cos</span><span class="op">)</span></span></code></pre></div>
 <p><img src="img-workflow-cosmx_files/figure-html/plot-xy-1.png" class="r-plt" width="700"></p>
 <p>Unlike, Xenium and MERSCOPE, CosMx does not stitch fields of view
 (FOVs) in a single image, but rather treats each FOV independently. It
 is therefore useful to visualize a map of the FOVs to understand their
 spatial arrangement.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/plotCellsFovs.html" class="external-link">plotCellsFovs</a></span><span class="op">(</span><span class="va">cos</span><span class="op">)</span></span></code></pre></div>
 <p><img src="img-workflow-cosmx_files/figure-html/plot-fov-map-1.png" class="r-plt" width="66%" style="display: block; margin: auto;"></p>
 </div>
@@ -233,50 +246,138 @@ coordinates?</li>
 <li>plot the centroids of the cell using
 <code>plotCentroids(cos)</code>. Colouring them for a specific cell
 metadata.</li>
+<li>
+<strong>BONUS</strong>: Load a different Xenium dataset from the
+<code>OSTA.data</code> package for further analysis (use the
+<code>Janesick_breastCancer_Xenium_rep1</code>). This could be heavy to
+load for your laptop if you think to do it together with the cosmx
+dataset.</li>
 </ol>
-<p>gives a thorough overview of quality control steps for imaging-based
-spatial transcriptomics data, including CosMX-specific metrics. Here, we
-will simply compute <em><a href="https://bioconductor.org/packages/3.22/SpaceTrooper" class="external-link">SpaceTrooper</a></em>’s
-aggregated QC score and keep the cells that pass the threshold.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">lys</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"NegPrb"</span>, <span class="st">"Negative"</span>, <span class="st">"SystemControl"</span><span class="op">)</span></span>
-<span><span class="va">cos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/spatialPerCellQC.html" class="external-link">spatialPerCellQC</a></span><span class="op">(</span><span class="va">cos</span>, rmZeros<span class="op">=</span><span class="cn">TRUE</span>, negProbList<span class="op">=</span><span class="va">lys</span><span class="op">)</span></span>
-<span><span class="va">cos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/computeQCScore.html" class="external-link">computeQCScore</a></span><span class="op">(</span><span class="va">cos</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/plotCentroids.html" class="external-link">plotCentroids</a></span><span class="op">(</span><span class="va">cos</span>, colourBy<span class="op">=</span><span class="st">"QC_score"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="img-workflow-cosmx_files/figure-html/qc-cosmx-1.png" class="r-plt" width="700"></p>
+</div>
+<div class="section level2">
+<h2 id="quality-control">Quality Control<a class="anchor" aria-label="anchor" href="#quality-control"></a>
+</h2>
+<p>Quality control (QC) is a crucial step in imaging-based spatial
+transcriptomics, just as it is in scRNA-seq, where it helps remove
+low-quality cells and reveal technical or biological biases at the
+sample, field-of-view (FOV), or slide-area level.</p>
+<p>A key difference, however, is that imaging-based ST platforms
+typically do not quantify the whole transcriptome—or even an unbiased
+subset of it—but rely instead on predefined gene panels. These panels,
+depending on platform and experimental goals, may be pan-tissue or
+focused on specific tissues or cell types. Their size varies widely,
+from a few hundred genes (e.g., 313 genes in the first Xenium panel) to
+several thousand (e.g., the Xenium 5k panel or the CosMx 6k and 18k
+panels). As a result, unlike sequencing-based assays, imaging platforms
+may not provide enough ribosomal or mitochondrial transcripts to compute
+standard QC metrics. They do, however, include sets of negative probes
+that allow detection of non-specific RNA capture.</p>
+<p>Finally, imaging-based ST technologies also offer rich morphological
+information (e.g., cell area, eccentricity) and signals from antibody
+stains—such as nuclear or membrane markers—which can further support QC
+and downstream analyses.</p>
+<p>Here we compute the cell-level QC metrics using the
+<code>SpaceTrooper</code> package.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">old</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">cos</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">lys</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"NegPrb"</span>, <span class="st">"Negative"</span>, <span class="st">"SystemControl"</span><span class="op">)</span></span>
+<span><span class="va">cos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/spatialPerCellQC.html" class="external-link">spatialPerCellQC</a></span><span class="op">(</span><span class="va">cos</span>, rmZeros<span class="op">=</span><span class="cn">TRUE</span>, negProbList<span class="op">=</span><span class="va">lys</span><span class="op">)</span></span></code></pre></div>
+<p>This produces the following new QC metrics in the object’s
+<code>colData</code>:</p>
+<pre><code><span><span class="co">##  [1] "sum"                     "detected"               </span></span>
+<span><span class="co">##  [3] "altexps_NegPrb_sum"      "altexps_NegPrb_detected"</span></span>
+<span><span class="co">##  [5] "altexps_NegPrb_percent"  "total"                  </span></span>
+<span><span class="co">##  [7] "control_sum"             "control_detected"       </span></span>
+<span><span class="co">##  [9] "target_sum"              "target_detected"        </span></span>
+<span><span class="co">## [11] "CenterX_global_px"       "CenterY_global_px"      </span></span>
+<span><span class="co">## [13] "ctrl_total_ratio"        "log2Ctrl_total_ratio"   </span></span>
+<span><span class="co">## [15] "CenterX_global_um"       "CenterY_global_um"      </span></span>
+<span><span class="co">## [17] "Area_um"                 "dist_border_x"          </span></span>
+<span><span class="co">## [19] "dist_border_y"           "dist_border"            </span></span>
+<span><span class="co">## [21] "log2AspectRatio"         "CountArea"              </span></span>
+<span><span class="co">## [23] "log2CountArea"</span></span></code></pre>
+<p>If we want to explore the distribution of a specific QC metric, e.g.,
+the log2 of counts per area, we can use the <code>plotMetricHist</code>
+function. When computing the spatial outliers, we can use either the
+scuttle (sc) or medcaple (mc) methods, or both. Then we can visualize
+the two outlier thresholds on the histogram.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/computeSpatialOutlier.html" class="external-link">computeSpatialOutlier</a></span><span class="op">(</span><span class="va">cos</span>, computeBy <span class="op">=</span> <span class="st">"log2CountArea"</span>, method<span class="op">=</span><span class="st">"both"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/plotMetricHist.html" class="external-link">plotMetricHist</a></span><span class="op">(</span><span class="va">cos</span>, <span class="st">"log2CountArea"</span>, useFences <span class="op">=</span> <span class="st">"log2CountArea_outlier_sc"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="img-workflow-cosmx_files/figure-html/unnamed-chunk-3-1.png" class="r-plt" width="700"></p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/plotMetricHist.html" class="external-link">plotMetricHist</a></span><span class="op">(</span><span class="va">cos</span>, <span class="st">"log2CountArea"</span>, useFences <span class="op">=</span> <span class="st">"log2CountArea_outlier_mc"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="img-workflow-cosmx_files/figure-html/unnamed-chunk-3-2.png" class="r-plt" width="700"></p>
+<p>Or visualize the metric in the spatial context:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/plotCentroids.html" class="external-link">plotCentroids</a></span><span class="op">(</span><span class="va">cos</span>, colourBy<span class="op">=</span><span class="st">"log2CountArea"</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Coordinate system already present.</span></span>
+<span><span class="co">## <span style="color: #00BBBB;">ℹ</span> Adding new coordinate system, which will replace the existing one.</span></span></code></pre>
+<p><img src="img-workflow-cosmx_files/figure-html/unnamed-chunk-4-1.png" class="r-plt" width="700"></p>
+<p>Now, we will simply compute <em><a href="https://bioconductor.org/packages/3.22/SpaceTrooper" class="external-link">SpaceTrooper</a></em>’s
+aggregated QC score and keep the cells that pass the threshold. More
+details will be provided once the paper will be published (Banzi ,
+Righelli et al., in preparation).</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/computeQCScore.html" class="external-link">computeQCScore</a></span><span class="op">(</span><span class="va">cos</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Metric log2Ctrl_total_ratio produced NA skewness values.It will be removed from the QC score formula.</span></span></code></pre>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/plotCentroids.html" class="external-link">plotCentroids</a></span><span class="op">(</span><span class="va">cos</span>, colourBy<span class="op">=</span><span class="st">"QC_score"</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Coordinate system already present.</span></span>
+<span><span class="co">## <span style="color: #00BBBB;">ℹ</span> Adding new coordinate system, which will replace the existing one.</span></span></code></pre>
+<p><img src="img-workflow-cosmx_files/figure-html/unnamed-chunk-5-1.png" class="r-plt" width="700"></p>
+<p>After that we can compute the QC flags, visualize them and filter out
+low-quality cells.</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/computeQCScoreFlags.html" class="external-link">computeQCScoreFlags</a></span><span class="op">(</span><span class="va">cos</span>, qsThreshold<span class="op">=</span><span class="fl">0.5</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/plotCentroids.html" class="external-link">plotCentroids</a></span><span class="op">(</span><span class="va">cos</span>, colourBy<span class="op">=</span><span class="st">"low_qcscore"</span><span class="op">)</span> <span class="op">+</span> </span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.key.size<span class="op">=</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">rel</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guides.html" class="external-link">guides</a></span><span class="op">(</span>col<span class="op">=</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/guide_legend.html" class="external-link">guide_legend</a></span><span class="op">(</span>override.aes<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>size<span class="op">=</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="img-workflow-cosmx_files/figure-html/filter-qc-cosmx-1.png" class="r-plt" width="700"></p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">SpaceTrooper</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/plotMetricHist.html" class="external-link">plotMetricHist</a></span><span class="op">(</span><span class="va">cos</span>, <span class="st">"QC_score"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="img-workflow-cosmx_files/figure-html/unnamed-chunk-6-1.png" class="r-plt" width="700"></p>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cos</span> <span class="op">&lt;-</span> <span class="va">cos</span><span class="op">[</span>, <span class="op">!</span><span class="va">cos</span><span class="op">$</span><span class="va">low_qcscore</span><span class="op">]</span></span></code></pre></div>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># SpaceTrooper::plotMetricHist(cos, "QC_score")</span></span></code></pre></div>
-<div class="section level3">
-<h3 id="processing">Processing<a class="anchor" aria-label="anchor" href="#processing"></a>
-</h3>
-<p>For the sake of runtime, we will perform downstream analyses only on
-a small portion of the tissue, defined by the following FOVs:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+</div>
+<div class="section level2">
+<h2 id="excercises-1">Excercises:<a class="anchor" aria-label="anchor" href="#excercises-1"></a>
+</h2>
+<ol style="list-style-type: decimal">
+<li>Explore the newly added QC metrics in <code>colData(cos)</code>.
+What do they represent?</li>
+<li>Visualize the distribution of another QC metric, e.g.,
+`log2NegativeArea</li>
+<li>Are you able to identify outlier cells based on this metric? how you
+visualize them?</li>
+<li>Visualize the spatial distribution of another QC metric.</li>
+<li>Compute the outliers for the QC_score (before filtering low qc
+cells) using both methods (sc and mc). How many cells are flagged as low
+quality by each method?</li>
+</ol>
+</div>
+<div class="section level2">
+<h2 id="processing">Processing<a class="anchor" aria-label="anchor" href="#processing"></a>
+</h2>
+<p>For the sake of runtime and laptop phisical limitations, we will
+perform downstream analyses only on a small portion of the tissue,
+defined by the following FOVs:</p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">72</span><span class="op">:</span><span class="fl">74</span>, <span class="fl">90</span><span class="op">:</span><span class="fl">92</span>, <span class="fl">97</span><span class="op">:</span><span class="fl">99</span>, <span class="fl">114</span><span class="op">:</span><span class="fl">116</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/plotZoomFovsMap.html" class="external-link">plotZoomFovsMap</a></span><span class="op">(</span><span class="va">cos</span>, fovs<span class="op">=</span><span class="va">fs</span><span class="op">)</span></span></code></pre></div>
 <p><img src="img-workflow-cosmx_files/figure-html/subset-fovs-cosmx-1.png" class="r-plt" width="700"></p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sub</span> <span class="op">&lt;-</span> <span class="va">cos</span><span class="op">[</span>, <span class="va">cos</span><span class="op">$</span><span class="va">fov</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">fs</span><span class="op">]</span></span></code></pre></div>
 <p>Next, we’ll log-normalize counts by area, and perform principal
-component analysis (PCA) on all 950 RNA targets: <span class="aside">See
-<span class="citation">@sec-ind-normalization</span> for more details on
-normalization.</span></p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+component analysis (PCA) on all 950 RNA targets:</p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># cell area-based normalization</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/assays.html" class="external-link">logcounts</a></span><span class="op">(</span><span class="va">sub</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sweep.html" class="external-link">sweep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">assay</a></span><span class="op">(</span><span class="va">sub</span><span class="op">)</span>, <span class="fl">2</span>, <span class="va">sub</span><span class="op">$</span><span class="va">Area</span>, <span class="va">`/`</span><span class="op">)</span></span>
 <span><span class="co"># principal component analysis</span></span>
 <span><span class="va">sub</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocSingular/man/runPCA.html" class="external-link">runPCA</a></span><span class="op">(</span><span class="va">sub</span><span class="op">)</span></span></code></pre></div>
 <p>Let’s visualize the expression of the first two principal components
 (PCs) in the spatial context.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># add PCs as cell metadata</span></span>
 <span><span class="va">pcs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/reducedDims.html" class="external-link">reducedDim</a></span><span class="op">(</span><span class="va">sub</span>, <span class="st">"PCA"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sub</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SummarizedExperiment/man/SummarizedExperiment-class.html" class="external-link">colData</a></span><span class="op">(</span><span class="va">sub</span><span class="op">)</span>, <span class="va">pcs</span><span class="op">)</span></span>
@@ -284,16 +385,15 @@ normalization.</span></p>
 <span><span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/plotCentroids.html" class="external-link">plotCentroids</a></span><span class="op">(</span><span class="va">sub</span>, colourBy<span class="op">=</span><span class="st">"PC1"</span><span class="op">)</span> <span class="op">+</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/plotCentroids.html" class="external-link">plotCentroids</a></span><span class="op">(</span><span class="va">sub</span>, colourBy<span class="op">=</span><span class="st">"PC2"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="img-workflow-cosmx_files/figure-html/plt-gs-xy-1.png" class="r-plt" width="768"></p>
-</div>
 <div class="section level3">
 <h3 id="annotation">Annotation<a class="anchor" aria-label="anchor" href="#annotation"></a>
 </h3>
 <p>Here, we use the <span class="citation">@zeisel2015cell</span>
 dataset as a reference to annotate the cell types with <em><a href="https://bioconductor.org/packages/3.22/SingleR" class="external-link">SingleR</a></em>.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sceZ</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scRNAseq/man/ZeiselBrainData.html" class="external-link">ZeiselBrainData</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">sceZ</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/scuttle/man/logNormCounts.html" class="external-link">logNormCounts</a></span><span class="op">(</span><span class="va">sceZ</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SingleR/man/SingleR.html" class="external-link">SingleR</a></span><span class="op">(</span>test<span class="op">=</span><span class="va">sub</span>, ref<span class="op">=</span><span class="va">sceZ</span>, labels<span class="op">=</span><span class="va">sceZ</span><span class="op">$</span><span class="va">level1class</span>, de.method<span class="op">=</span><span class="st">"wilcox"</span><span class="op">)</span></span>
 <span><span class="va">sub</span><span class="op">$</span><span class="va">SingleR_label</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">pred</span><span class="op">$</span><span class="va">pruned.labels</span><span class="op">)</span></span>
 <span></span>
@@ -326,7 +426,7 @@ details.</p>
 package <span class="citation">[@Cai2024-DESpace]</span>. In this
 workflow, we use this as a way to identify marker genes for the cell
 types annotated above.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://peicai.github.io/DESpace/reference/svg_test.html" class="external-link">svg_test</a></span><span class="op">(</span>spe<span class="op">=</span><span class="va">sub</span>, cluster_col<span class="op">=</span><span class="st">"SingleR_label"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res</span><span class="op">$</span><span class="va">gene_results</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##         gene_id       LR   logCPM PValue FDR</span></span>
@@ -339,7 +439,7 @@ types annotated above.</p>
 <p>We focus on the genes with the smallest p-values, and compute the
 average expression of each gene in each cell type. We can visualize this
 with a heatmap.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">df</span> <span class="op">&lt;-</span> <span class="va">res</span><span class="op">$</span><span class="va">gene_results</span></span>
 <span><span class="va">gs</span> <span class="op">&lt;-</span> <span class="va">df</span><span class="op">$</span><span class="va">gene_id</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/rank.html" class="external-link">rank</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">PValue</span>, ties.method<span class="op">=</span><span class="st">"min"</span><span class="op">)</span> <span class="op">==</span> <span class="fl">1</span><span class="op">]</span></span>
 <span><span class="va">mu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/t.html" class="external-link">t</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/dge.html" class="external-link">counts</a></span><span class="op">(</span><span class="va">sub</span><span class="op">)</span><span class="op">[</span><span class="va">gs</span>, <span class="op">]</span>, <span class="fl">1</span>, <span class="va">tapply</span>, <span class="va">sub</span><span class="op">$</span><span class="va">SingleR_label</span>, <span class="va">mean</span><span class="op">)</span><span class="op">)</span></span>
@@ -354,7 +454,7 @@ genes, e.g., Mbp that marks oligodendrocytes, and Calm1, Calm2, and
 Snap25 that mark different subsets of neurons. Note also how some genes
 show a difference of expression within the pyramidal neuron population,
 suggesting the presence of subtypes.</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Mbp"</span>, <span class="st">"Calm1"</span>, <span class="st">"Calm2"</span>, <span class="st">"Snap25"</span><span class="op">)</span></span>
 <span><span class="va">ps</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">gs</span>, \<span class="op">(</span><span class="va">g</span><span class="op">)</span> <span class="op">{</span></span>
 <span>    <span class="va">sub</span><span class="op">[[</span><span class="va">g</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SingleCellExperiment/man/assays.html" class="external-link">logcounts</a></span><span class="op">(</span><span class="va">sub</span><span class="op">)</span><span class="op">[</span><span class="va">g</span>, <span class="op">]</span></span>
@@ -383,7 +483,7 @@ nearest neighbors (kNN) method to define the neighborhood graph. Here,
 we prefer to use a distance-based approach, as it better captures the
 morphological structure of this tissue area.</p>
 </div>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># convert to SFE &amp; remove cells with NA labels</span></span>
 <span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/methods/as.html" class="external-link">as</a></span><span class="op">(</span><span class="va">sub</span>, <span class="st">"SpatialFeatureExperiment"</span><span class="op">)</span></span>
 <span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="va">sfe</span><span class="op">[</span>, <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">$</span><span class="va">SingleR_label</span><span class="op">)</span><span class="op">]</span></span>
@@ -409,7 +509,7 @@ spatial autocorrelation for specific genes in the dataset.</p>
 <p>Here, we focus on Snap25 and Calm1, neuronal marker genes identified
 above that show interesting spatial expression distributions (see
 above). First, we compute the local Moran’s I coefficient.</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Snap25"</span>, <span class="st">"Calm1"</span><span class="op">)</span></span>
 <span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Voyager/man/calculateUnivariate.html" class="external-link">runUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>,</span>
 <span>    features<span class="op">=</span><span class="va">gs</span>,</span>
@@ -431,7 +531,7 @@ shows a more diffuse autocorrelation structure.</p>
 a Moran scatter plot, which shows the relationship between the
 expression of the gene in each cell and the average expression in its
 neighbors.</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sfe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Voyager/man/calculateUnivariate.html" class="external-link">runUnivariate</a></span><span class="op">(</span><span class="va">sfe</span>,</span>
 <span>    feature<span class="op">=</span><span class="va">gs</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
 <span>    zero.policy<span class="op">=</span><span class="cn">TRUE</span>,</span>
@@ -447,7 +547,7 @@ neighbors.</p>
 <p>We can then classify cells based on the significance of their local
 Moran’s I values, and visualize the resulting clusters in the spatial
 context.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/localResults.html" class="external-link">localResults</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">)</span><span class="op">[[</span><span class="st">"localmoran"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span>
 <span><span class="va">res</span><span class="op">$</span><span class="va">locClust</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/with.html" class="external-link">with</a></span><span class="op">(</span><span class="va">res</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span></span>
 <span>    <span class="va">`-log10p_adj`</span> <span class="op">&gt;</span> <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log10</a></span><span class="op">(</span><span class="fl">0.05</span><span class="op">)</span>, </span>
@@ -480,7 +580,7 @@ interactions between different cell types annotated above. Here, we use
 the join count statistic implemented in the <em><a href="https://CRAN.R-project.org/package=spdep" class="external-link">spdep</a></em> package
 to quantify the tendency of cells of different types to be
 neighbors.</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">jc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/spdep/reference/joincount.multi.html" class="external-link">joincount.multi</a></span><span class="op">(</span><span class="va">sfe</span><span class="op">$</span><span class="va">SingleR_label</span>, <span class="fu"><a href="https://rdrr.io/pkg/SpatialFeatureExperiment/man/spatialGraphs.html" class="external-link">colGraph</a></span><span class="op">(</span><span class="va">sfe</span>, <span class="st">"poly2nb"</span><span class="op">)</span>, zero.policy<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">jc</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">jc</span><span class="op">[</span>, <span class="st">"z-value"</span><span class="op">]</span><span class="op">)</span>, decreasing<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span>, <span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">##                                     Joincount   Expected  Variance   z-value</span></span>
@@ -515,7 +615,7 @@ that does not take into account tissue structure and cell density
 variations across the tissue. Hence, these plots should be considered as
 exploratory analyses rather than formal hypothesis tests.</p>
 </div>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/spatialFDA/man/calcMetricPerFov.html" class="external-link">calcMetricPerFov</a></span><span class="op">(</span></span>
 <span>    spe<span class="op">=</span><span class="va">sub</span>, fun<span class="op">=</span><span class="st">"Lest"</span>,</span>
 <span>    subsetby<span class="op">=</span><span class="st">"sample_id"</span>, </span>
@@ -543,7 +643,7 @@ cells at a distance smaller than their size.</p>
 investigate the interaction between two different cell types, e.g.,
 pyramidal CA1 neurons and oligodendrocytes, using the cross-L
 function.</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/spatialFDA/man/calcMetricPerFov.html" class="external-link">calcMetricPerFov</a></span><span class="op">(</span></span>
 <span>    spe<span class="op">=</span><span class="va">sub</span>, fun<span class="op">=</span><span class="st">"Lcross"</span>, </span>
 <span>    subsetby<span class="op">=</span><span class="st">"sample_id"</span>, </span>
@@ -578,7 +678,7 @@ websites.</p>
 <div class="section level2">
 <h2 id="session-info">Session Info<a class="anchor" aria-label="anchor" href="#session-info"></a>
 </h2>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">sessionInfo</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## R version 4.5.2 (2025-10-31)</span></span>
 <span><span class="co">## Platform: x86_64-pc-linux-gnu</span></span>
@@ -617,7 +717,7 @@ websites.</p>
 <span><span class="co">## [21] S4Vectors_0.48.0                BiocGenerics_0.56.0            </span></span>
 <span><span class="co">## [23] generics_0.1.4                  MatrixGenerics_1.22.0          </span></span>
 <span><span class="co">## [25] matrixStats_1.5.0               pheatmap_1.0.13                </span></span>
-<span><span class="co">## [27] patchwork_1.3.2                 OSTA.data_1.2.0                </span></span>
+<span><span class="co">## [27] patchwork_1.3.2                 OSTA.data_1.2.1                </span></span>
 <span><span class="co">## [29] ggplot2_4.0.1                   DESpace_2.2.1                  </span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## loaded via a namespace (and not attached):</span></span>
@@ -646,8 +746,8 @@ websites.</p>
 <span><span class="co">##  [45] rhdf5_2.54.0              spatialreg_1.4-2         </span></span>
 <span><span class="co">##  [47] UCSC.utils_1.6.0          units_1.0-0              </span></span>
 <span><span class="co">##  [49] curl_7.0.0                ScaledMatrix_1.18.0      </span></span>
-<span><span class="co">##  [51] h5mread_1.2.0             polyclip_1.10-7          </span></span>
-<span><span class="co">##  [53] ExperimentHub_3.0.0       SparseArray_1.10.2       </span></span>
+<span><span class="co">##  [51] h5mread_1.2.1             polyclip_1.10-7          </span></span>
+<span><span class="co">##  [53] ExperimentHub_3.0.0       SparseArray_1.10.3       </span></span>
 <span><span class="co">##  [55] fftwtools_0.9-11          desc_1.4.3               </span></span>
 <span><span class="co">##  [57] pracma_2.4.6              evaluate_1.0.5           </span></span>
 <span><span class="co">##  [59] S4Arrays_1.10.0           BiocFileCache_3.0.0      </span></span>
@@ -723,7 +823,7 @@ websites.</p>
 <span><span class="co">## [199] tidyselect_1.2.1          vipor_0.4.7              </span></span>
 <span><span class="co">## [201] ProtGenerics_1.42.0       ggforce_0.5.0            </span></span>
 <span><span class="co">## [203] car_3.1-3                 AnnotationDbi_1.72.0     </span></span>
-<span><span class="co">## [205] sfheaders_0.4.4           rsvd_1.0.5               </span></span>
+<span><span class="co">## [205] sfheaders_0.4.5           rsvd_1.0.5               </span></span>
 <span><span class="co">## [207] KernSmooth_2.23-26        S7_0.2.1                 </span></span>
 <span><span class="co">## [209] BiocStyle_2.38.0          data.table_1.17.8        </span></span>
 <span><span class="co">## [211] htmlwidgets_1.6.4         RColorBrewer_1.1-3       </span></span>
