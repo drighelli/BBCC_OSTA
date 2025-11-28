@@ -63,7 +63,8 @@ set.seed(112358)
 # Load data
 
 We load the dataset which was pre-stored in the `OSTA.data` package. The dataset contains about 50,000 cells profiled for about 1,000 RNA targets.
-We then use the `readCosmxSXE` function from the `SpatialExperimentIO` package to read the data into a `SpatialExperiment` object. Finally, we prepare the data for analysis with `SpaceTrooper` by updating the object and reading the cell polygons.
+We then use the `readCosmxSXE` function from the `SpatialExperimentIO` package to read the data into a `SpatialExperiment` object. 
+Then, it is possible to adapt the dataset to work with `SpaceTrooper` by updating the object and reading the cell polygons (this process is optional if we don't need the polygons).
 
 ```{r load-cos, message=FALSE, warning=FALSE}
 # retrieve CosMx dataset from OSF repo
@@ -79,7 +80,18 @@ cos$in_tissue <- TRUE # artifact to work with ggspavis
 cos
 ```
 
-You can access additional metadata of the SpatialExperiment object `cos` as follows:
+In alternative, it is possible to directly load imaging-based technologies dataset using the SpaceTrooper package with 
+one of the following commands.
+Note that for adding the poligons to the SpatialExperiment object, you can use the `readAndAddPolygonsToSPE` function as shown above, or just use the keepPolygons=TRUE argument (for xenium and merfish) in the reading functions.
+ 
+```{r, eval=FALSE}
+cos <- readCosmxSPE(td, sampleName = "CosMx")
+cospro <- readCosmxProteinSPE(td, sampleName = "CosMxProtein")
+xen <- readXeniumSPE(dirName = "path/to/xenium/data", sampleName = "Xenium", keepPolygons = TRUE)
+mer <- readMerfishSPE(dirName = "path/to/merscope/data", sampleName = "MERSCOPE", keepPolygons = TRUE)
+```
+
+Once loaded, you can access additional metadata of the SpatialExperiment object `cos` as follows:
 - colData(cos): cell-level metadata, including FOV ID, cell area, and QC metrics.
     - alternatively, you can directly access a specific metadata column with `cos$<column_name>`. (e.g., `cos$fov` gives the FOV IDs for each cell).
 - rowData(cos): gene-level metadata, including gene names and biotypes.
@@ -108,31 +120,72 @@ plotCellsFovs(cos)
 4. Check the distribution of counts across cells. Are there any cells with very low counts?
 5. Extract the spatial coordinates of the cells using `spatialCoords(cos)`. What is the range of the x and y coordinates?
 6. plot the centroids of the cell using `plotCentroids(cos)`. Colouring them for a specific cell metadata.
+7. **BONUS**: Load a different Xenium dataset from the `OSTA.data` package for further analysis (use the `Janesick_breastCancer_Xenium_rep1`). This could be heavy to load for your laptop if you think to do it together with the cosmx dataset.
 
+# Quality Control
 
-  gives a thorough overview of quality control steps for imaging-based spatial transcriptomics data, including CosMX-specific metrics. Here, we will simply compute `r BiocStyle::Biocpkg("SpaceTrooper")`'s aggregated QC score and keep the cells that pass the threshold.
+Quality control (QC) is a crucial step in imaging-based spatial transcriptomics, just as it is in scRNA-seq, where it helps remove low-quality cells and reveal technical or biological biases at the sample, field-of-view (FOV), or slide-area level.
+
+A key difference, however, is that imaging-based ST platforms typically do not quantify the whole transcriptome—or even an unbiased subset of it—but rely instead on predefined gene panels.
+These panels, depending on platform and experimental goals, may be pan-tissue or focused on specific tissues or cell types. Their size varies widely, from a few hundred genes (e.g., 313 genes in the first Xenium panel) to several thousand (e.g., the Xenium 5k panel or the CosMx 6k and 18k panels). 
+As a result, unlike sequencing-based assays, imaging platforms may not provide enough ribosomal or mitochondrial transcripts to compute standard QC metrics.
+They do, however, include sets of negative probes that allow detection of non-specific RNA capture.
+
+Finally, imaging-based ST technologies also offer rich morphological information (e.g., cell area, eccentricity) and signals from antibody stains—such as nuclear or membrane markers—which can further support QC and downstream analyses.
+
+Here we compute the cell-level QC metrics using the `SpaceTrooper` package.
 
 ```{r qc-cosmx, message=FALSE}
+old <- names(colData(cos))
 lys <- c("NegPrb", "Negative", "SystemControl")
 cos <- spatialPerCellQC(cos, rmZeros=TRUE, negProbList=lys)
+```
+
+This produces the following new QC metrics in the object's `colData`:
+```{r, echo=FALSE}
+setdiff(names(colData(cos)), old)
+```
+
+ If we want to explore the distribution of a specific QC metric, e.g., the log2 of counts per area, we can use the `plotMetricHist` function. 
+ When computing the spatial outliers, we can use either the scuttle (sc) or medcaple (mc) methods, or both.
+ Then we can visualize the two outlier thresholds on the histogram.
+```{r}
+cos <- computeSpatialOutlier(cos, computeBy = "log2CountArea", method="both")
+plotMetricHist(cos, "log2CountArea", useFences = "log2CountArea_outlier_sc")
+plotMetricHist(cos, "log2CountArea", useFences = "log2CountArea_outlier_mc")
+```
+
+Or visualize the metric in the spatial context:
+
+```{r}
+plotCentroids(cos, colourBy="log2CountArea")
+```
+
+Now, we will simply compute `r BiocStyle::Biocpkg("SpaceTrooper")`'s aggregated QC score and keep the cells that pass the threshold.
+More details will be provided once the paper will be published (Banzi , Righelli et al., in preparation).
+
+```{r}
 cos <- computeQCScore(cos)
 plotCentroids(cos, colourBy="QC_score")
 ```
+
+After that we can compute the QC flags, visualize them and filter out low-quality cells.
 
 ```{r filter-qc-cosmx, results="hold"}
 cos <- computeQCScoreFlags(cos, qsThreshold=0.5)
 plotCentroids(cos, colourBy="low_qcscore") + 
     theme(legend.key.size=rel(0)) +
     guides(col=guide_legend(override.aes=list(size=2)))
-cos <- cos[, !cos$low_qcscore]
 ```
 
 ```{r}
-# SpaceTrooper::plotMetricHist(cos, "QC_score")
+SpaceTrooper::plotMetricHist(cos, "QC_score")
+cos <- cos[, !cos$low_qcscore]
 ```
+
 ## Processing
 
-For the sake of runtime, we will perform downstream analyses only on
+For the sake of runtime and laptop phisical limitations, we will perform downstream analyses only on
 a small portion of the tissue, defined by the following FOVs:
 
 ```{r subset-fovs-cosmx, results="hold", message=FALSE}
@@ -146,6 +199,7 @@ component analysis (PCA) on all `r nrow(cos)` RNA targets:
 [See @sec-ind-normalization for more details on normalization.]{.aside}
 
 ```{r pro}
+
 # cell area-based normalization
 logcounts(sub) <- sweep(assay(sub), 2, sub$Area, `/`)
 # principal component analysis
