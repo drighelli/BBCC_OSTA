@@ -2,6 +2,8 @@
 title: "CosMx Workflow"
 author: OSTA Group
 output: rmarkdown::html_vignette
+bibliography: vignettes/bibs.bib
+link-citations: true
 vignette: >
   %\VignetteIndexEntry{CosMx Workflow}
   %\VignetteEngine{knitr::rmarkdown}
@@ -63,7 +65,7 @@ set.seed(112358)
 # Load data
 
 We load the dataset which was pre-stored in the `OSTA.data` package. The dataset contains about 50,000 cells profiled for about 1,000 RNA targets.
-We then use the `readCosmxSXE` function from the `SpatialExperimentIO` package to read the data into a `SpatialExperiment` object. 
+We then use the `readCosmxSXE` function from the `SpatialExperimentIO` package to read the data into a `SpatialExperiment` object @Righelli2022-SpatialExperiment. 
 Then, it is possible to adapt the dataset to work with `SpaceTrooper` by updating the object and reading the cell polygons (this process is optional if we don't need the polygons).
 
 ```{r load-cos, message=FALSE, warning=FALSE}
@@ -149,6 +151,7 @@ setdiff(names(colData(cos)), old)
  If we want to explore the distribution of a specific QC metric, e.g., the log2 of counts per area, we can use the `plotMetricHist` function. 
  When computing the spatial outliers, we can use either the scuttle (sc) or medcaple (mc) methods, or both.
  Then we can visualize the two outlier thresholds on the histogram.
+
 ```{r}
 cos <- computeSpatialOutlier(cos, computeBy = "log2CountArea", method="both")
 plotMetricHist(cos, "log2CountArea", useFences = "log2CountArea_outlier_sc")
@@ -225,13 +228,19 @@ plotCentroids(sub, colourBy="PC1") +
 plotCentroids(sub, colourBy="PC2")
 ```
 
-## Annotation
+# Cell type Annotation
+
+Cell type annotation is a key step in the analysis of spatial transcriptomics data, as it allows us to assign biological meaning to the observed spatial patterns of gene expression.
 
 Here, we use the @zeisel2015cell dataset as a reference to annotate the cell types with `r BiocStyle::Biocpkg("SingleR")`.
+This dataset is composed by single-cell RNA-seq data from the mouse brain, and contains 3000 cells from a variety of annotated cell types at two different levels of granularity (level 1 and level 2).
+We will use the coarse level 1 annotations for this demo.
 
 ```{r load-ref-cosmx}
 sceZ <- ZeiselBrainData()
 sceZ <- logNormCounts(sceZ)
+table(sceZ$level1class)
+table(sceZ$level2class)
 ```
 
 ```{r annot-cosmx}
@@ -248,13 +257,12 @@ plotPolygons(sub,
 
 Note that the annotation performed here is a transfer label from a reference dataset that only partially matches with the tissue under study and purposely annotated at a coarse level (level 1). Ideally, one can use a more appropriate reference dataset, or better yet, build a custom reference from single-cell RNA-seq data of the same tissue.
 
-::: {.aside}
-A different, often preferable, approach consists in using, in addition to the gene expression profiles, the image data and the spatial context of the cells. `r BiocStyle::Githubpkg("Nanostring-Biostats/InSituType", "InSituType")` [@danaher2022insitutype] provides a framework to perform such analysis in unsupervised, semi-supervised, or supervised manners. Please refer to its documentation for more details.
-:::
+A different approach consists in using, in addition to the gene expression profiles, the image data and the spatial context of the cells. `r BiocStyle::Githubpkg("Nanostring-Biostats/InSituType", "InSituType")` [@danaher2022insitutype] provides a framework to perform such analysis in unsupervised, semi-supervised, or supervised manners. Please refer to its documentation for more details.
 
-### Marker genes
 
-Here, we identify cluster-related spatially-variable genes using the `r BiocStyle::Biocpkg("DESpace")` package [@Cai2024-DESpace]. In this workflow, we use this as a way to identify marker genes for the cell types annotated above.
+# Marker genes
+
+Once that we have identified the cell types, we can identify cluster-related spatially-variable genes using the `r BiocStyle::Biocpkg("DESpace")` package [@Cai2024-DESpace]. In this workflow, we use this as a way to identify marker genes for the cell types annotated above.
 
 ```{r svg-cosmx, message=FALSE}
 res <- svg_test(spe=sub, cluster_col="SingleR_label")
@@ -272,6 +280,7 @@ pheatmap(t(mu),
     scale="column", show_colnames=FALSE,
     cluster_rows=TRUE, cluster_cols=TRUE, 
     main="Average expression of top SVGs per cell type")
+
 ```
 
 We can also visualize the spatial distribution of some of these genes, e.g., Mbp that marks oligodendrocytes, and Calm1, Calm2, and Snap25 that mark different subsets of neurons. Note also how some genes show a difference of expression within the pyramidal neuron population, suggesting the presence of subtypes.
@@ -291,13 +300,12 @@ wrap_plots(ps, guides="collect") &
     theme(plot.title=element_text(hjust=0.5))
 ```
 
-## Neighborhood-based gene expression analyses
+# Neighborhood-based gene expression analyses
 
 We start by creating a cell neighborhood graph, based on a distance threshold of 50 microns. To do so, we use the `r BiocStyle::Biocpkg("SpatialFeatureExperiment")` package [@Moses2023-Voyager].
 
-::: {.aside}
 Note that an alternative approach uses the $k$ nearest neighbors (kNN) method to define the neighborhood graph. Here, we prefer to use a distance-based approach, as it better captures the morphological structure of this tissue area.
-:::
+
 
 ```{r cci-graph-cosmx, warning=FALSE}
 # convert to SFE & remove cells with NA labels
@@ -305,6 +313,7 @@ sfe <- as(sub, "SpatialFeatureExperiment")
 sfe <- sfe[, !is.na(sfe$SingleR_label)]
 
 # this is needed for Voyager's plotting functions
+# sfe$polygons<-.renameGeometry(sfe$polygons, from="global", to="geomery")
 colnames(sfe$polygons)[6] <- "geometry"
 st_geometry(sfe$polygons) <- "geometry"
 colGeometry(sfe, "cellSeg") <- sfe$polygons
@@ -322,6 +331,16 @@ plotColGraph(sfe,
 ```
 
 Given the neighborhood graph, we can calculate local measures of spatial autocorrelation for specific genes in the dataset.
+
+Moran’s I is a measure of spatial autocorrelation that quantifies the degree to which observed values (e.g., gene expression) are similar across neighboring spatial locations. The core idea is to compare the value of each cell with the average value of its spatial neighbors, using a spatial-weights matrix that defines what “neighboring” means.
+
+When Moran’s I is:
+
+* positive → similar values cluster together (High–High or Low–Low regions)
+
+* negative → dissimilar values tend to be adjacent Low-High (checkerboard-likeLow patterns)
+
+* ≈ 0 → no spatial structure (random pattern)
 
 Here, we focus on Snap25 and Calm1, neuronal marker genes identified above that show interesting spatial expression distributions (see above). First, we compute the local Moran's I coefficient.
 
@@ -377,15 +396,21 @@ plotLocalResult(sfe,
 
 In this case, we can see a significant positive autocorrelation in the lower left part of the structure, while the rest of the tissue does not show significant autocorrelation.
 
-::: {.aside}
 Note that other local spatial autocorrelation measures, such as Geary's C coefficient and Getis-Ord statistic, as well as their global versions can be used for similar analyses [@Emons2025-pasta,@Moses2023-Voyager].
-:::
 
-## Cell-cell interactions
+# Cell-cell interactions
 
-### Joint counts
+## Joint counts
 
 We can also use the neighborhood graph to investigate cell-cell interactions between different cell types annotated above. Here, we use the join count statistic implemented in the `r BiocStyle::CRANpkg("spdep")` package to quantify the tendency of cells of different types to be neighbors.
+
+In practice, join counts evaluate, for each pair of labels, how frequently two adjacent cells belong to those categories, and compare this to an expectation derived from a permutation-based null model. The resulting z-scores indicate the strength and direction of the interaction:
+
+* Positive z-values → the two cell types co-locate more than expected (attraction / spatial clustering).
+
+* Negative z-values → the two cell types co-locate less than expected (avoidance / spatial segregation).
+
+* Values near zero → no significant deviation from spatial randomness.
 
 ```{r cci-cosmx}
 jc <- joincount.multi(sfe$SingleR_label, colGraph(sfe, "poly2nb"), zero.policy=TRUE)
@@ -394,7 +419,7 @@ head(jc[order(abs(jc[, "z-value"]), decreasing=TRUE), ])
 
 We can see that there is a strong tendency for cells of the same type to be neighbors (high positive z-values). There are also some interesting negative interactions between different cell types: e.g., pyramidal CA1 tend to be away from oligodendrocytes and astrocytes. This highlights the compartimentalized structure of the brain tissue.
 
-### Point-pattern analysis
+## Point-pattern analysis
 
 A similar result can be obtained using point-pattern analysis, such as Ripley's K function, and similar methods, using for instance the `r BiocStyle::Biocpkg("spatialFDA")` package.
 
@@ -445,12 +470,5 @@ In this case, we can see that pyramidal CA1 neurons and oligodendrocytes tend to
 
 We only briefly discussed cell-cell interactions and spatial exploratory analyses here: we refer interested readers to the comprehensive documentation and tutorials available at the [pasta](https://robinsonlabuzh.github.io/pasta/00-home.html) and [Voyager](https://pachterlab.github.io/voyager/) websites.
 
-## Appendix
 
-### References {.unnumbered}
-
-# Session Info
-
-```{r sessioninfo}
-sessionInfo()
-```
+# References {.unnumbered}
