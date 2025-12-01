@@ -2,7 +2,7 @@
 title: "CosMx Workflow"
 author: OSTA Group
 output: rmarkdown::html_vignette
-bibliography: vignettes/bibs.bib
+bibliography: bibs.bib
 link-citations: true
 vignette: >
   %\VignetteIndexEntry{CosMx Workflow}
