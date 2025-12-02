@@ -6,8 +6,10 @@ bibliography: bibs.bib
 link-citations: true
 vignette: >
   %\VignetteIndexEntry{CosMx Workflow}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 
 # Workflow: CosMX data analysis
@@ -64,6 +66,7 @@ set.seed(112358)
 
 # Load data
 
+## CosMx data
 We load the dataset which was pre-stored in the `OSTA.data` package. The dataset contains about 50,000 cells profiled for about 1,000 RNA targets.
 We then use the `readCosmxSXE` function from the `SpatialExperimentIO` package to read the data into a `SpatialExperiment` object @Righelli2022-SpatialExperiment. 
 Then, it is possible to adapt the dataset to work with `SpaceTrooper` by updating the object and reading the cell polygons (this process is optional if we don't need the polygons).
@@ -85,12 +88,14 @@ cos
 In alternative, it is possible to directly load imaging-based technologies dataset using the SpaceTrooper package with 
 one of the following commands.
 Note that for adding the poligons to the SpatialExperiment object, you can use the `readAndAddPolygonsToSPE` function as shown above, or just use the keepPolygons=TRUE argument (for xenium and merfish) in the reading functions.
- 
+
+NB: these are only for example purpose. If you want to download xenium or merfish data, you need to find a dataset of one of these technologies (i.e. in OSTA.data) and then put the path of the dataset to the functions.
+
 ```{r, eval=FALSE}
 cos <- readCosmxSPE(td, sampleName = "CosMx")
 cospro <- readCosmxProteinSPE(td, sampleName = "CosMxProtein")
-xen <- readXeniumSPE(dirName = "path/to/xenium/data", sampleName = "Xenium", keepPolygons = TRUE)
-mer <- readMerfishSPE(dirName = "path/to/merscope/data", sampleName = "MERSCOPE", keepPolygons = TRUE)
+xen <- readXeniumSPE(dirName = "path/to/xenium/data", sampleName = "Xenium", keepPolygons = TRUE) # do not run as it is
+mer <- readMerfishSPE(dirName = "path/to/merscope/data", sampleName = "MERSCOPE", keepPolygons = TRUE) # do not run as it is
 ```
 
 Once loaded, you can access additional metadata of the SpatialExperiment object `cos` as follows:
@@ -300,6 +305,10 @@ wrap_plots(ps, guides="collect") &
     theme(plot.title=element_text(hjust=0.5))
 ```
 
+# Exercise
+
+1. Extract a list of marker genes and plot them
+
 # Neighborhood-based gene expression analyses
 
 We start by creating a cell neighborhood graph, based on a distance threshold of 50 microns. To do so, we use the `r BiocStyle::Biocpkg("SpatialFeatureExperiment")` package [@Moses2023-Voyager].
@@ -329,6 +338,7 @@ plotColGraph(sfe,
     colGeometryName="cellSeg") + 
     theme_void()
 ```
+
 
 Given the neighborhood graph, we can calculate local measures of spatial autocorrelation for specific genes in the dataset.
 
@@ -466,6 +476,14 @@ plotMetricPerFov(res,
 In this case, we can see that pyramidal CA1 neurons and oligodendrocytes tend to be spatially segregated, as indicated by the cross-L function being below the CSR line.
 
 We only briefly discussed cell-cell interactions and spatial exploratory analyses here: we refer interested readers to the comprehensive documentation and tutorials available at the [pasta](https://robinsonlabuzh.github.io/pasta/00-home.html) and [Voyager](https://pachterlab.github.io/voyager/) websites.
+
+# Excercises 
+
+1. Preprocessing: what percentage of variance is explained by PC1 and PC2? Explore the explained percentage of variance with a plot (i.e. elbow plot, histogram). 
+2. Annotation:  create a frequency table of the annotation column. 
+Which is the most abundant cell type in this tissue subset? Which is the rarest? 
+3. Do you know any specific markers for microglia? Try to explore their expression. (i.e. extract the latest column from the heatmap)
+4. The neighborhood graph was built using a distance snap of 50 microns. Try re-running, changing the distance snap e.g., 80 and compare the two settings.
 
 
 # References {.unnumbered}
