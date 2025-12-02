@@ -154,6 +154,9 @@ identification of marker genes, and cell-cell interaction analysis.</p>
 <div class="section level2">
 <h2 id="load-data">Load data<a class="anchor" aria-label="anchor" href="#load-data"></a>
 </h2>
+<div class="section level3">
+<h3 id="cosmx-data">CosMx data<a class="anchor" aria-label="anchor" href="#cosmx-data"></a>
+</h3>
 <p>We load the dataset which was pre-stored in the
 <code>OSTA.data</code> package. The dataset contains about 50,000 cells
 profiled for about 1,000 RNA targets. We then use the
@@ -196,11 +199,15 @@ SpatialExperiment object, you can use the
 <code>readAndAddPolygonsToSPE</code> function as shown above, or just
 use the keepPolygons=TRUE argument (for xenium and merfish) in the
 reading functions.</p>
+<p>NB: these are only for example purpose. If you want to download
+xenium or merfish data, you need to find a dataset of one of these
+technologies (i.e. in OSTA.data) and then put the path of the dataset to
+the functions.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/readCosmxSPE.html" class="external-link">readCosmxSPE</a></span><span class="op">(</span><span class="va">td</span>, sampleName <span class="op">=</span> <span class="st">"CosMx"</span><span class="op">)</span></span>
 <span><span class="va">cospro</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/readCosmxSPE.html" class="external-link">readCosmxProteinSPE</a></span><span class="op">(</span><span class="va">td</span>, sampleName <span class="op">=</span> <span class="st">"CosMxProtein"</span><span class="op">)</span></span>
-<span><span class="va">xen</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/readXeniumSPE.html" class="external-link">readXeniumSPE</a></span><span class="op">(</span>dirName <span class="op">=</span> <span class="st">"path/to/xenium/data"</span>, sampleName <span class="op">=</span> <span class="st">"Xenium"</span>, keepPolygons <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="va">mer</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/readMerfishSPE.html" class="external-link">readMerfishSPE</a></span><span class="op">(</span>dirName <span class="op">=</span> <span class="st">"path/to/merscope/data"</span>, sampleName <span class="op">=</span> <span class="st">"MERSCOPE"</span>, keepPolygons <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">xen</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/readXeniumSPE.html" class="external-link">readXeniumSPE</a></span><span class="op">(</span>dirName <span class="op">=</span> <span class="st">"path/to/xenium/data"</span>, sampleName <span class="op">=</span> <span class="st">"Xenium"</span>, keepPolygons <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co"># do not run as it is</span></span>
+<span><span class="va">mer</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/SpaceTrooper/man/readMerfishSPE.html" class="external-link">readMerfishSPE</a></span><span class="op">(</span>dirName <span class="op">=</span> <span class="st">"path/to/merscope/data"</span>, sampleName <span class="op">=</span> <span class="st">"MERSCOPE"</span>, keepPolygons <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co"># do not run as it is</span></span></code></pre></div>
 <p>Once loaded, you can access additional metadata of the
 SpatialExperiment object <code>cos</code> as follows: - colData(cos):
 cell-level metadata, including FOV ID, cell area, and QC metrics. -
@@ -211,6 +218,7 @@ including gene names and biotypes. - assays(cos): names of the assays
 available in the object (e.g., “counts” for raw counts, “logcounts” for
 log-normalized counts if available). - spatialCoords(cos): spatial
 coordinates of the cells.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="basic-visualization">Basic Visualization<a class="anchor" aria-label="anchor" href="#basic-visualization"></a>
@@ -502,6 +510,13 @@ suggesting the presence of subtypes.</p>
 <p><img src="img-workflow-cosmx_files/figure-html/plt-svg-genes-1.png" class="r-plt" width="960"></p>
 </div>
 <div class="section level2">
+<h2 id="exercise">Exercise<a class="anchor" aria-label="anchor" href="#exercise"></a>
+</h2>
+<ol style="list-style-type: decimal">
+<li>Extract a list of marker genes and plot them</li>
+</ol>
+</div>
+<div class="section level2">
 <h2 id="neighborhood-based-gene-expression-analyses">Neighborhood-based gene expression analyses<a class="anchor" aria-label="anchor" href="#neighborhood-based-gene-expression-analyses"></a>
 </h2>
 <p>We start by creating a cell neighborhood graph, based on a distance
@@ -723,6 +738,23 @@ comprehensive documentation and tutorials available at the <a href="https://robi
 <a href="https://pachterlab.github.io/voyager/" class="external-link">Voyager</a>
 websites.</p>
 </div>
+</div>
+<div class="section level2">
+<h2 id="excercises-2">Excercises<a class="anchor" aria-label="anchor" href="#excercises-2"></a>
+</h2>
+<ol style="list-style-type: decimal">
+<li>Preprocessing: what percentage of variance is explained by PC1 and
+PC2? Explore the explained percentage of variance with a plot
+(i.e. elbow plot, histogram).</li>
+<li>Annotation: create a frequency table of the annotation column. Which
+is the most abundant cell type in this tissue subset? Which is the
+rarest?</li>
+<li>Do you know any specific markers for microglia? Try to explore their
+expression. (i.e. extract the latest column from the heatmap)</li>
+<li>The neighborhood graph was built using a distance snap of 50
+microns. Try re-running, changing the distance snap e.g., 80 and compare
+the two settings.</li>
+</ol>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
